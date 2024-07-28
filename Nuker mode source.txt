@@ -1,20 +1,22 @@
 local ServiceID = "NukerMode"
-local PandaAuth = loadstring(game:HttpGet('https://api.luable.top/panda.lua'))()
+-- Removed: local PandaAuth = loadstring(game:HttpGet('https://api.luable.top/panda.lua'))()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/Allvideo1/Nukermode/main/Bannedxd.lua"))()
-if not PandaAuth:Authenticate_Keyless(ServiceID) then
-setclipboard(PandaAuth:GetKey(ServiceID))
-end
+-- Removed: if not PandaAuth:Authenticate_Keyless(ServiceID) then
+-- Removed: setclipboard(PandaAuth:GetKey(ServiceID))
+-- Removed: end
 
 while true do
-    if PandaAuth:Authenticate_Keyless(ServiceID) then
-        print('Successfully Authorized') ]]
+    -- Removed: if PandaAuth:Authenticate_Keyless(ServiceID) then
+        print('Successfully Authorized')
         for k,v in getgc(true) do
-    if pcall(function() return rawget(v,"indexInstance") end) and type(rawget(v,"indexInstance")) == "table" and (rawget(v,"indexInstance"))[1] == "kick" then
-        v.tvk = {"kick",function()
-            return workspace:WaitForChild("")
-        end}
-    end
-end
+            if pcall(function() return rawget(v,"indexInstance") end) and type(rawget(v,"indexInstance")) == "table" and (rawget(v,"indexInstance"))[1] == "kick" then
+                v.tvk = {"kick",function()
+                    return workspace:WaitForChild("")
+                end}
+            end
+        end
+    -- Removed: end
+
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
