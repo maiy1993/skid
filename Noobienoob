@@ -1,0 +1,330 @@
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Pixeluted/adoniscries/main/Source.lua", true))()
+wait(2)
+-- HTTP Request Function
+local http_request = (syn and syn.request) or (http and http.request) or http_request or request
+
+-- Load Menu Script
+local success, Menu = pcall(function()
+    return loadstring(http_request({
+        Url = "https://raw.githubusercontent.com/Hxckerskyy/miserycc.lua/main/menu.lua",
+        Method = "GET"
+    }).Body)()
+end)
+
+if not success or not Menu then
+    error("Failed to load Menu script")
+end
+
+-- Update Menu Title with Typing Effect
+local function MenuNameUpdate()
+    while task.wait() do
+        local Name, PlaceHolder = 'Sax', ''
+        for i = 1, #Name do
+            local Character = string.sub(Name, i, i)
+            PlaceHolder = PlaceHolder .. Character
+            Menu:SetTitle(PlaceHolder .. '<font color="#' .. tostring(Menu.Accent:ToHex()) .. '">.LOL</font>')
+            task.wait(0.25)
+        end
+    end
+end
+
+-- Toggle Menu Visibility
+local function MenuToggle()
+    Menu:SetVisible(not Menu.IsVisible)
+end
+
+-- Initialize Menu
+task.spawn(MenuNameUpdate)
+
+Menu.Accent = Color3.fromRGB(100, 95, 192)  -- Example accent color
+
+-- Remove Menu Indicators
+-- Menu.Indicators = Menu.Indicators() do
+--     Menu.Indicators.Add('Target', 'Text', 'nil')
+--     Menu.Indicators.Add('Target Health', 'Bar', 50, 0, 100)  -- Value, Min, Max
+--     Menu.Indicators.Add('Target Armor', 'Bar', 100, 0, 200)  -- Value, Min, Max
+--     Menu.Indicators.Add('Knocked Out', 'Text', 'True')
+--     Menu.Indicators.Add('Anti Aiming', 'Text', 'True')
+--     Menu.Indicators.Add('Target Ammo', 'Bar', 50, 0, 200)  -- Value, Min, Max
+-- end
+
+-- Update Watermark
+Menu.Watermark()
+Menu.Watermark:Update('Sax<font color="#' .. tostring(Menu.Accent:ToHex()) .. '">.LOL</font>')
+
+-- Main Window Setup
+local Window = Menu:SetTitle('Sax') do
+
+    local CombatTab = Menu.Tab("Main") do
+
+        -- Camera Lock Section
+        local CameraLockSection = Menu.Container("Main", "Camera Lock Settings", "Left") do
+            Menu.CheckBox("Main", "Camera Lock", "Enabled", false, function(a)
+                Settings.Combat.TargetLock.Enabled = a
+            end)
+        end
+
+Menu.TextBox("Main", "Camera Lock", "Smoothing", "0.65", function(value)
+                Smoothing = tonumber(value) or 0.65
+            end)
+            Menu.TextBox("Main", "Camera Lock", "Jump Offset", "0.09", function(value)
+                JumpOffset = tonumber(value) or 0.09
+            end)
+            Menu.TextBox("Main", "Camera Lock", "Fall Offset", "0", function(value)
+                FallOffset = tonumber(value) or 0
+            end)
+            Menu.TextBox("Main", "Camera Lock", "Trigger Tolerance", "10", function(value)
+                TriggerBotTolerance = tonumber(value) or 10
+            end)
+            Menu.TextBox("Main", "Camera Lock", "Prediction", "0.14664", function(value)
+                getgenv().CamlockPrediction = tonumber(value) or 0.14664
+            end)
+            Menu.CheckBox("Main", "Camera Lock", "Trigger Bot", false, function(a)
+                TriggerBotEnabled = a
+                if TriggerBotEnabled then
+                    SendNotification("Sax.lol", "Trigger Bot Enabled")
+                else
+                    SendNotification("Sax.lol", "Trigger Bot Disabled")
+                end
+            end)
+        end
+
+
+        -- HitPart Section
+        local HitPartSection = Menu.Container("Main", "HitPart", "Left") do
+            Menu.CheckBox("Main", "HitPart", "NearestPart", false, function(a)
+                Settings.Combat.TargetLock.NearestPart = a
+            end)
+            Menu.ComboBox("Main", "HitPart", "NearestPart Mode", "Nearest Part", {"Nearest Point", "Nearest Part"}, function(a)
+                Settings.Combat.TargetLock.HitPartMode = a
+            end)
+            Menu.ComboBox("Main", "HitPart", "HitPart", "HumanoidRootPart", {"Head", "LeftHand", "RightHand", "LeftLowerArm", "RightLowerArm", "LeftUpperArm", "RightUpperArm", "LeftFoot", "LeftLowerLeg", "UpperTorso", "HumanoidRootPart", "LeftUpperLeg", "RightLowerLeg", "RightFoot", "LowerTorso"}, function(a)
+                Settings.Combat.TargetLock.HitParts = a
+            end)
+        end
+    end
+end
+
+-- Ensure Menu is Visible After Setup
+Menu:SetVisible(true)
+
+-- Create a Toggle Button
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0, 50, 0, 50)  -- Size of the button
+toggleButton.Position = UDim2.new(0, 10, 0.5, -25)  -- Positioned on the left side of the screen
+toggleButton.AnchorPoint = Vector2.new(0, 0.5)  -- Center the button vertically
+toggleButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)  -- Black background
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)  -- White text
+toggleButton.Text = "Menu"
+toggleButton.Parent = screenGui
+
+-- Connect the button click to toggle the menu
+toggleButton.MouseButton1Click:Connect(MenuToggle)
+
+
+
+
+
+
+
+
+
+-- Services and Variables
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local StarterGui = game:GetService("StarterGui")
+local LocalPlayer = Players.LocalPlayer
+local CamlockState = false
+local ShootingToolName = "ShootingTool" -- Name of the tool used for shooting
+local StickyAim = true -- New variable to toggle sticky aim feature
+local JumpOffset = 0.09 -- New variable for jump offset
+local FallOffset = 0 -- New variable for fall offset
+local Smoothing = 0.65 -- Smoothing factor for camera movement
+local TriggerBotEnabled = true -- New variable to toggle trigger bot
+local TriggerBotTolerance = 10 -- Tolerance for crosshair alignment
+
+-- Silent Aim Settings
+getgenv().HitPart = "HumanoidRootPart" -- Targeting HumanoidRootPart
+getgenv().SilentPrediction = 0.155 -- Silent Aim prediction value
+getgenv().Enabled = true
+
+-- Camlock Tool Settings
+getgenv().CamlockPrediction = 0.14664 -- Camlock Tool prediction value
+
+-- FOV settings
+getgenv().ShowFOV = true
+getgenv().Filled = false  -- Ensure this is set to false
+getgenv().FOVSize = 275
+getgenv().FOVTransparency = 0.1
+getgenv().FOVThickness = 0.1
+getgenv().FOVColor = Color3.new(1, 0, 0)  -- Set to red or another color as needed
+
+local SilentAimFOVCircle = Drawing.new("Circle")
+SilentAimFOVCircle.Color = getgenv().FOVColor
+SilentAimFOVCircle.Visible = getgenv().ShowFOV
+SilentAimFOVCircle.Filled = getgenv().Filled  -- Set to false
+SilentAimFOVCircle.Radius = getgenv().FOVSize
+SilentAimFOVCircle.Transparency = getgenv().FOVTransparency
+SilentAimFOVCircle.Thickness = getgenv().FOVThickness
+
+local function getClosestPlayerToCenter()
+    local centerScreenPosition = Vector2.new(workspace.CurrentCamera.ViewportSize.X / 2, workspace.CurrentCamera.ViewportSize.Y / 2 - (game:GetService("GuiService"):GetGuiInset().Y / 2))
+    local closestPlayer
+    local closestDistance = math.huge
+    local localPlayer = game.Players.LocalPlayer
+
+    for _, player in ipairs(game.Players:GetPlayers()) do
+        if player ~= localPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local playerRootPart = player.Character.HumanoidRootPart
+            local screenPosition, onScreen = workspace.CurrentCamera:WorldToViewportPoint(playerRootPart.Position)
+
+            if onScreen then
+                local distance = (centerScreenPosition - Vector2.new(screenPosition.X, screenPosition.Y)).Magnitude
+
+                if distance < closestDistance and distance <= SilentAimFOVCircle.Radius then
+                    closestPlayer = player
+                    closestDistance = distance
+                end
+            end
+        end
+    end
+
+    return closestPlayer
+end
+
+local SilentTarget = nil
+
+RunService.RenderStepped:Connect(function()
+    SilentTarget = getClosestPlayerToCenter()
+    SilentAimFOVCircle.Position = Vector2.new(workspace.CurrentCamera.ViewportSize.X / 2, workspace.CurrentCamera.ViewportSize.Y / 2 - (game:GetService("GuiService"):GetGuiInset().Y / 2))
+end)
+
+-- Silent Aim Implementation
+local mt = getrawmetatable(game)
+local old = mt.__namecall
+setreadonly(mt, false)
+mt.__namecall = newcclosure(function(...)
+    local args = {...}
+    if getgenv().Enabled and SilentTarget and SilentTarget.Character and getnamecallmethod() == "FireServer" and args[2] == "UpdateMousePos" then
+        args[3] = SilentTarget.Character[getgenv().HitPart].Position + (SilentTarget.Character[getgenv().HitPart].Velocity * getgenv().SilentPrediction)
+        return old(unpack(args))
+    end
+    return old(...)
+end)
+setreadonly(mt, true)
+
+-- Function to find the nearest enemy
+function FindNearestEnemy()
+    local closestDistance, closestPlayer = math.huge, nil
+    local centerPosition = Vector2.new(
+        game:GetService("GuiService"):GetScreenResolution().X / 2,
+        game:GetService("GuiService"):GetScreenResolution().Y / 2
+    )
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            local character = player.Character
+            if character and character:FindFirstChild("HumanoidRootPart") and character.Humanoid.Health > 0 then
+                local position, isVisibleOnViewport = 
+                    game:GetService("Workspace").CurrentCamera:WorldToViewportPoint(character.HumanoidRootPart.Position)
+
+                if isVisibleOnViewport then
+                    local distance = (centerPosition - Vector2.new(position.X, position.Y)).Magnitude
+                    if distance < closestDistance then
+                        closestPlayer = character
+                        closestDistance = distance
+                    end
+                end
+            end
+        end
+    end
+
+    return closestPlayer
+end
+
+local enemy = nil
+
+-- Function to check if the crosshair is on the target
+local function IsCrosshairOnTarget()
+    if enemy then
+        local camera = workspace.CurrentCamera
+        local viewportPoint = camera:WorldToViewportPoint(enemy.HumanoidRootPart.Position)
+        local centerPosition = Vector2.new(
+            game:GetService("GuiService"):GetScreenResolution().X / 2,
+            game:GetService("GuiService"):GetScreenResolution().Y / 2
+        )
+        local crosshairPosition = Vector2.new(viewportPoint.X, viewportPoint.Y)
+        
+        -- Define a small tolerance to consider the crosshair as being on the target
+        return (centerPosition - crosshairPosition).Magnitude <= TriggerBotTolerance
+    end
+    return false
+end
+
+-- Function to aim the camera at the nearest enemy's HumanoidRootPart
+RunService.Heartbeat:Connect(function()
+    if CamlockState and enemy then
+        local camera = workspace.CurrentCamera
+        local targetPosition = enemy.HumanoidRootPart.Position + Vector3.new(0, JumpOffset, 0) + enemy.HumanoidRootPart.Velocity * getgenv().CamlockPrediction
+        local fallAdjustedPosition = targetPosition - Vector3.new(0, FallOffset, 0) -- Adjust target position for fall offset
+        local targetCFrame = CFrame.new(camera.CFrame.p, fallAdjustedPosition)
+        
+        -- Smoothly interpolate the camera's CFrame towards the targetCFrame
+        camera.CFrame = camera.CFrame:Lerp(targetCFrame, Smoothing)
+
+        -- Ensure the shooting tool is equipped and active
+        local shootingTool = LocalPlayer.Backpack:FindFirstChild(ShootingToolName)
+        if shootingTool then
+            LocalPlayer.Character.Humanoid:EquipTool(shootingTool)
+
+            -- Activate the tool if trigger bot is enabled and crosshair is on target
+            if TriggerBotEnabled and IsCrosshairOnTarget() then
+                shootingTool:Activate()
+            end
+        end
+
+        -- Redirect bullets if the tool has a targeting system
+        if shootingTool and shootingTool:IsA("Tool") then
+            shootingTool.Activated:Connect(function()
+                -- Redirect bullets towards the locked enemy's HumanoidRootPart position
+                local direction = (enemy.HumanoidRootPart.Position - workspace.CurrentCamera.CFrame.p).unit
+                local projectile = shootingTool:FindFirstChild("Projectile")
+                if projectile then
+                    projectile.Velocity = direction * projectile.Velocity.Magnitude
+                end
+            end)
+        end
+    end
+end)
+
+-- Create the Camlock Tool
+local camlockTool = Instance.new("Tool")
+camlockTool.Name = "CamlockTool"
+camlockTool.RequiresHandle = false
+camlockTool.Parent = LocalPlayer.Backpack
+
+-- Function to send notifications
+local function SendNotification(title, text)
+    StarterGui:SetCore("SendNotification", {
+        Title = title,
+        Text = text,
+        Duration = 2 -- Duration in seconds
+    })
+end
+
+-- Toggle Camlock state and sticky aim when the tool is activated
+camlockTool.Activated:Connect(function()
+    CamlockState = not CamlockState
+    StickyAim = CamlockState -- Enable sticky aim if Camlock is enabled
+
+    if CamlockState then
+        enemy = FindNearestEnemy()
+        SendNotification("saxx.lol", "CamLock ON with Sticky Aim")
+    else
+        enemy = nil
+        SendNotification("saxx.lol", "CamLock OFF")
+    end
+end)
